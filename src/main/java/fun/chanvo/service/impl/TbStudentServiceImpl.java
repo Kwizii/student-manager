@@ -1,13 +1,21 @@
 package fun.chanvo.service.impl;
 
+import cn.afterturn.easypoi.excel.ExcelExportUtil;
+import cn.afterturn.easypoi.excel.entity.ExportParams;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import fun.chanvo.entity.TbStudent;
 import fun.chanvo.mapper.TbStudentMapper;
 import fun.chanvo.service.ITbStudentService;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Service;
 
+import javax.swing.filechooser.FileSystemView;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -58,6 +66,19 @@ public class TbStudentServiceImpl extends ServiceImpl<TbStudentMapper, TbStudent
             data[i][16] = s.getAddress();
         }
         return data;
+    }
+
+    @Override
+    public String exportExcel(List<Integer> ids) throws IOException {
+        List<TbStudent> students = listByIds(ids);
+        Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams("学生学籍信息", "sheet1"), TbStudent.class, students);
+        File homeDirectory = FileSystemView.getFileSystemView().getHomeDirectory();
+        File file = new File(homeDirectory, IdUtil.fastSimpleUUID() + ".xls");
+        FileOutputStream outputStream = new FileOutputStream(file);
+        workbook.write(outputStream);
+        outputStream.close();
+        workbook.close();
+        return file.getAbsolutePath();
     }
 
     private String statusDesc(int status) {

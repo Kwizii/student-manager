@@ -1,9 +1,9 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://www.chanvo.fun:3306/db_stu_manager?useUnicode=true&useSSL=false&characterEncoding=utf8
-    username: root
-    password: chanvo1234
+    url: jdbc:mysql://www.chanvo.fun:3306/db_stu_manager?useUnicode=true&useSSL=false&characterEncoding=utf8&allowPublicKeyRetrieval=true
+    username: zjoujava
+    password: chanvo123456
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
       minimum-idle: 5

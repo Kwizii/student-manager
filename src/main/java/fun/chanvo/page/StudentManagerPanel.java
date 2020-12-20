@@ -9,8 +9,11 @@ import fun.chanvo.util.SpringUtil;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Chanvo
@@ -38,6 +41,9 @@ public class StudentManagerPanel extends JPanel {
     private final TableComponent table;
     private final JRadioButton radioButtonBoy;
     private final JRadioButton radioButtonGirl;
+    private final JRadioButton radioButtonStatus0;
+    private final JRadioButton radioButtonStatus1;
+    private final JRadioButton radioButtonStatus2;
 
     private final Object[] columnNames = {"序号", "状态", "学号", "名字", "性别", "学院", "专业", "班级", "入学年份", "学制", "联系电话", "出生日期", "年龄", "籍贯", "民族", "身份证号", "住址"};
     private Object[][] rowData;
@@ -52,14 +58,37 @@ public class StudentManagerPanel extends JPanel {
             StudentAddPage frame = new StudentAddPage();
             frame.setVisible(true);
         });
-        studentAddBtn.setBounds(10, 10, 93, 23);
+        studentAddBtn.setBounds(10, 10, 80, 23);
         add(studentAddBtn);
+
+        JButton exportBtn = new JButton("导出EXCEL");
+        exportBtn.setBounds(110, 10, 80, 23);
+        add(exportBtn);
+
+        exportBtn.addActionListener(e -> {
+            if (rowData != null) {
+                List<Integer> ids = new ArrayList<>();
+                for (Object[] obj : rowData) {
+                    Integer id = (Integer) obj[0];
+                    ids.add(id);
+                }
+                String fname;
+                try {
+                    fname = studentService.exportExcel(ids);
+                } catch (IOException ioException) {
+                    JOptionPane.showMessageDialog(null, ioException.getMessage(), "导出失败", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                JOptionPane.showMessageDialog(null, "文件位置：" + fname, "导出成功", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+
         JButton flushBtn = new JButton("刷新");
-        flushBtn.setBounds(127, 10, 80, 23);
+        flushBtn.setBounds(210, 10, 80, 23);
         add(flushBtn);
 
         fieldSearch = new JTextField("学号、姓名模糊搜索");
-        fieldSearch.setBounds(236, 11, 389, 22);
+        fieldSearch.setBounds(310, 11, 390, 22);
         add(fieldSearch);
         fieldSearch.setColumns(10);
 
@@ -75,7 +104,7 @@ public class StudentManagerPanel extends JPanel {
             //更新用户列表
             updateList(1, input);
         });
-        searchBtn.setBounds(635, 10, 121, 23);
+        searchBtn.setBounds(698, 10, 80, 23);
         add(searchBtn);
 
         JPanel studentListPanel = new JPanel();
@@ -119,31 +148,50 @@ public class StudentManagerPanel extends JPanel {
         studentInfoPanel.add(fieldSchoolNo);
 
         JLabel labelName = new JLabel("学生姓名");
-        labelName.setBounds(37, 106, 54, 15);
+        labelName.setBounds(37, 96, 54, 15);
         studentInfoPanel.add(labelName);
         fieldName = new JTextField();
-        fieldName.setBounds(101, 103, 263, 21);
+        fieldName.setBounds(101, 93, 263, 21);
         fieldName.setColumns(10);
         studentInfoPanel.add(fieldName);
 
-        JLabel labelSex = new JLabel("用户性别");
-        labelSex.setBounds(37, 146, 54, 15);
+        JLabel labelSex = new JLabel("性别");
+        labelSex.setBounds(37, 126, 54, 15);
         studentInfoPanel.add(labelSex);
         radioButtonBoy = new JRadioButton("男");
-        radioButtonBoy.setBounds(101, 143, 60, 21);
+        radioButtonBoy.setBounds(101, 123, 60, 21);
         studentInfoPanel.add(radioButtonBoy);
         radioButtonGirl = new JRadioButton("女");
-        radioButtonGirl.setBounds(169, 143, 60, 21);
+        radioButtonGirl.setBounds(169, 123, 60, 21);
         studentInfoPanel.add(radioButtonGirl);
         ButtonGroup genderButtonGroup = new ButtonGroup();
         genderButtonGroup.add(radioButtonBoy);
         genderButtonGroup.add(radioButtonGirl);
 
+        JLabel labelStatus = new JLabel("状态");
+        labelStatus.setBounds(37, 156, 54, 15);
+        studentInfoPanel.add(labelStatus);
+        radioButtonStatus0 = new JRadioButton("在读");
+        radioButtonStatus0.setBounds(100, 153, 60, 21);
+        studentInfoPanel.add(radioButtonStatus0);
+        radioButtonStatus1 = new JRadioButton("休学");
+        radioButtonStatus1.setBounds(170, 153, 60, 21);
+        studentInfoPanel.add(radioButtonStatus1);
+        radioButtonStatus2 = new JRadioButton("退学");
+        radioButtonStatus2.setBounds(240, 153, 60, 21);
+        studentInfoPanel.add(radioButtonStatus2);
+
+
+        ButtonGroup statusRadioGroup = new ButtonGroup();
+        statusRadioGroup.add(radioButtonStatus0);
+        statusRadioGroup.add(radioButtonStatus1);
+        statusRadioGroup.add(radioButtonStatus2);
+
         JLabel labelCollege = new JLabel("学院");
-        labelCollege.setBounds(37, 190, 54, 15);
+        labelCollege.setBounds(37, 200, 54, 15);
         studentInfoPanel.add(labelCollege);
         fieldCollege = new JTextField();
-        fieldCollege.setBounds(101, 187, 263, 21);
+        fieldCollege.setBounds(101, 197, 263, 21);
         fieldCollege.setColumns(10);
         studentInfoPanel.add(fieldCollege);
 
@@ -256,7 +304,7 @@ public class StudentManagerPanel extends JPanel {
                     JOptionPane.showMessageDialog(null, "填写错误，请重新填写", "提示", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                try{
+                try {
                     TbStudent student = new TbStudent();
                     student.setId(id);
                     student.setSchoolNo(fieldSchoolNo.getText());
@@ -273,6 +321,7 @@ public class StudentManagerPanel extends JPanel {
                     student.setIdNo(fieldIdNo.getText());
                     student.setAddress(fieldAddr.getText());
                     student.setSex(radioButtonBoy.isSelected() ? 1 : 0);
+                    student.setStatus(radioButtonStatus0.isSelected() ? 0 : radioButtonStatus1.isSelected() ? 1 : 2);
                     boolean result = studentService.updateById(student);
                     if (result) {
                         JOptionPane.showMessageDialog(null, "修改成功", "提示", JOptionPane.INFORMATION_MESSAGE);
@@ -281,7 +330,7 @@ public class StudentManagerPanel extends JPanel {
                     } else {
                         JOptionPane.showMessageDialog(null, "修改失败", "提示", JOptionPane.ERROR_MESSAGE);
                     }
-                }catch (Exception ex){
+                } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, "修改失败，信息格式错误或学号重复", "提示", JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -350,6 +399,13 @@ public class StudentManagerPanel extends JPanel {
                     } else {
                         radioButtonGirl.setSelected(true);
                     }
+                    if (selectStudent.getStatus() == 0) {
+                        radioButtonStatus0.setSelected(true);
+                    } else if (selectStudent.getStatus() == 1) {
+                        radioButtonStatus1.setSelected(true);
+                    } else {
+                        radioButtonStatus2.setSelected(true);
+                    }
 
                 }
             }
@@ -387,6 +443,7 @@ public class StudentManagerPanel extends JPanel {
         fieldIdNo.setText("");
         fieldAddr.setText("");
         radioButtonBoy.setSelected(true);
+        radioButtonStatus0.setSelected(true);
     }
 
     private void initService() {

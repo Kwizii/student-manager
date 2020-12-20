@@ -2,6 +2,7 @@ package fun.chanvo;
 
 
 import fun.chanvo.page.HomePage;
+import fun.chanvo.page.LoadPage;
 import fun.chanvo.util.SpringUtil;
 import org.jb2011.lnf.beautyeye.BeautyEyeLNFHelper;
 import org.mybatis.spring.annotation.MapperScan;
@@ -23,6 +24,7 @@ import java.awt.*;
 public class MainApplication {
 
     public static void main(String[] args) {
+        LoadPage loadPage = new LoadPage();
         try {
             BeautyEyeLNFHelper.launchBeautyEyeLNF();
             BeautyEyeLNFHelper.frameBorderStyle = BeautyEyeLNFHelper.FrameBorderStyle.translucencyAppleLike;
@@ -32,7 +34,10 @@ public class MainApplication {
         }
         ConfigurableApplicationContext context = new SpringApplicationBuilder(MainApplication.class).headless(false).run(args);
         SpringUtil.setContext(context);
-        EventQueue.invokeLater(() -> new HomePage().setVisible(true));
+        EventQueue.invokeLater(() -> {
+            new HomePage().setVisible(true);
+            loadPage.dispose();
+        });
     }
 
 }
