@@ -1,8 +1,10 @@
 package fun.chanvo;
 
 
+import fun.chanvo.page.ErrorDialog;
 import fun.chanvo.page.HomePage;
 import fun.chanvo.page.LoadPage;
+import fun.chanvo.util.HttpUtil;
 import fun.chanvo.util.SpringUtil;
 import org.jb2011.lnf.beautyeye.BeautyEyeLNFHelper;
 import org.mybatis.spring.annotation.MapperScan;
@@ -25,12 +27,17 @@ public class MainApplication {
 
     public static void main(String[] args) {
         LoadPage loadPage = new LoadPage();
+        boolean connect = HttpUtil.isConnect("www.baidu.com");
         try {
             BeautyEyeLNFHelper.launchBeautyEyeLNF();
             BeautyEyeLNFHelper.frameBorderStyle = BeautyEyeLNFHelper.FrameBorderStyle.translucencyAppleLike;
             UIManager.put("RootPane.setupButtonVisible", false);
         } catch (Exception e) {
             return;
+        }finally {
+            if (!connect) {
+                new ErrorDialog();
+            }
         }
         ConfigurableApplicationContext context = new SpringApplicationBuilder(MainApplication.class).headless(false).run(args);
         SpringUtil.setContext(context);
